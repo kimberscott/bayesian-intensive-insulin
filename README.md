@@ -41,3 +41,28 @@ clean your notebook upon committing changes.
 * If you are using a git GUI interface like Sourcetree, note that it may define its own PATH and 
 not be able to access `jq`. In this case, substitute the actual path to `jq` (e.g., `/usr/local/bin/jq`)
 in the `clean` command in your `.gitconfig` file.
+
+# TODO (can move to issues):
+
+* Take start date/duration as params instead of segment, and also fetch range of protocol vals
+* Plot inferred against in-use parameters
+
+* Look into using lognormal distribution for sigmaBG - does this matter for assessing certainty?
+* Allow varying breakfast/lunch/dinner carb ratios and sensitivity factors
+* Use more realistic priors for basal, CR, CF
+* Use actual Humalog & carb action time profiles instead of linear
+* Allow action time to scale
+
+* Expect appropriate noise on insulin & carbs, and infer "true" IOB/COB profiles
+* Infer basal profile rather than overall rate
+
+* Treat sugar to treat differently (expect to act faster, and/or just discard glucose measurements in following N hours)
+* Treat exercise snacks differently (expect to have smaller influence, and/or discard glucose measurements in following N hours)
+* Import pump basal data
+* Allow complete discounting of a timepoint with some small probability - the "hrmmmm" factor for typos, REALLY off measurements, etc.
+* Evaluate model fit to data
+* Conduct comparisons to actual protocols
+
+* Code cleanup for readability
+* Code cleanup for efficiency
+* Set up to import other datasets
