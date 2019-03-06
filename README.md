@@ -1,5 +1,18 @@
 Bayesian causal modeling of diabetes data to infer insulin sensitivity and carb factors
 
+# Setup instructions using pip
+* Clone the repo
+* Install virtualenv if needed
+   pip3 install virtualenv
+* Create and activate a virtual environment for this project
+   bayesian_intensive_insulin$ virtualenv -p python3 venv
+   bayesian_intensive_insulin$ source venv/bin/activate
+* Install requirements, including jupyter
+   bayesian_intensive_insulin$ pip3 install -r requirements.txt
+* Run `jupyter notebook`. It should open your browser and let you select `pymongo_diabetes.ipynb`
+* From your virtual environment, install any additional packages you need as you work. If 
+  you do so, also run `pip3 freeze > requirements.txt` and commit the `requirements.txt` file.
+
 # Making changes more readable: stripping down the .ipynb metadata
 
 We would like to share changes to the code, but don't necessarily want to keep track of 
