@@ -227,6 +227,8 @@ def scaleByTimeBin(amounts, actionCurve):
     nBins = len(amounts[0]) 
     return [[amounts[j][k] * actionCurve[k] for k in range(nBins)] for j in range(nSeq)]
     
+
+    
 def extract_amounts_on_board(df, binSize):
 
     for col in df.columns:
@@ -254,51 +256,39 @@ def extract_amounts_on_board(df, binSize):
     # Store the insulin on board and carbs on board that have been added at each timepoint, since last measurement
     newIOB = [scaleByTimeBin(newInsulin[i], list(reversed(insActCurve))) for i in range(nSeg)]
     newCOB = [scaleByTimeBin(newCarbs[i], list(reversed(carbActCurve))) for i in range(nSeg)]
+    
+    print('newIOB: {} x {} x {}'.format(len(newIOB), len(newIOB[0]), len(newIOB[0][0])))
 
-    # Compute the current insulin on board, based on how much remaining IOB is present from last measurement
-    # and what IOB has been added since last measurement.
+    def get_iob(newIOB):
+        # Compute the current insulin (/carbs/etc.) on board, based on how much remaining 
+        # IOB is present from last measurement and what IOB has been added since last 
+        # measurement. 
+        #
+        # newIOB has dimensions nSeg x nSeq x nBins
 
-    currentIOB = []
-    currentIOB.append(np.array(newIOB[0]))
+        currentIOB = []
+        currentIOB.append(np.array(newIOB[0]))
 
-    for i in range(1, nSeg):
-         
-        # How much IOB from previous IOB is still there?
-        remainingPreviousIOB = [currentIOB[i-1][j] * np.divide(np.maximum(timeBinsDown - delT[i][j], 0), timeBinsDown) 
-                                for j in range(nSeq)]   # nSeq x nBins
-    
-        # Shift it to keep track of how long each dose has left to act
-        binsToShift = np.around(np.divide(delT[i], binSize)).astype('int') # len nBins
-    
-        shiftedPreviousIOB = [np.append([0] * min(binsToShift[j], nBins), prev[:-min(binsToShift[j], nBins)])
-                              for (j, prev) in enumerate(remainingPreviousIOB)]
-    
-        iob = newIOB[i] + shiftedPreviousIOB
-    
-        currentIOB.append(iob)
+        for i in range(1, nSeg):
+     
+            # How much IOB from previous IOB is still there?
+            remainingPreviousIOB = [currentIOB[i-1][j] * np.divide(np.maximum(timeBinsDown - delT[i][j], 0), timeBinsDown) 
+                                    for j in range(nSeq)]   # nSeq x nBins
 
-    # Analogously, compute current carbs on board 
-    # TODO: generalize
+            # Shift it to keep track of how long each dose has left to act
+            binsToShift = np.around(np.divide(delT[i], binSize)).astype('int') # len nBins
 
-    currentCOB = []
-    currentCOB.append(np.array(newCOB[0]))
+            shiftedPreviousIOB = [np.append([0] * min(binsToShift[j], nBins), prev[:-min(binsToShift[j], nBins)])
+                                  for (j, prev) in enumerate(remainingPreviousIOB)]
 
-    for i in range(1, nSeg):
-         
-        # How much COB from previous COB is still there?
-        remainingPreviousCOB = [currentCOB[i-1][j] * np.divide(np.maximum(timeBinsDown - delT[i][j], 0), timeBinsDown) 
-                                for j in range(nSeq)]   # nSeq x nBins
-    
-        # Shift it to keep track of how long each food has left to act
-        binsToShift = np.around(np.divide(delT[i], binSize)).astype('int') # len nBins
-    
-        shiftedPreviousCOB = [np.append([0] * min(binsToShift[j], nBins), prev[:-min(binsToShift[j], nBins)])
-                              #if binsToShift[j] < nBins else [0] * nBins
-                              for (j, prev) in enumerate(remainingPreviousCOB)]
-    
-        cob = newCOB[i] + shiftedPreviousCOB
-    
-        currentCOB.append(cob)
+            iob = newIOB[i] + shiftedPreviousIOB
+
+            currentIOB.append(iob)
+        
+        return currentIOB
+        
+    currentIOB = get_iob(newIOB)
+    currentCOB = get_iob(newCOB)
     
     iobImpact = [np.minimum(1, np.outer(delT[i], 1/timeBinsDown)) for i in range(nSeg)]
     cobImpact = [np.minimum(1, np.outer(delT[i], 1/timeBinsDown)) for i in range(nSeg)]
