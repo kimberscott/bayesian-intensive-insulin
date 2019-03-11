@@ -4,7 +4,7 @@ import math
 from ast import literal_eval
 import numpy as np
 
-def save_sequences(csvFilename, outFilename, b = 0.5, d = 3, segmentDays = 30, segment = 1, sequenceLength = 15, maxGapHours = 16):
+def save_sequences(csvFilename, outFilename, b = 0.5, d = 3, segmentDays = 30, segmentStart = '', sequenceLength = 15, maxGapHours = 16):
     '''Process a CSV file with one row per observation into a CSV with one row per sequence.
 
     Usage: save_sequences(csvFilename, b = 0.5, d = 3, segmentDays = 30, segment = 8, 
@@ -16,7 +16,7 @@ def save_sequences(csvFilename, outFilename, b = 0.5, d = 3, segmentDays = 30, s
     d: Total duration of insulin and food history vectors. Impact of data longer than d hours 
         ago should not continue to change.
     segmentDays: how long a segment of data to use for inference at all, in days
-    segment: which segment of to use, starting at 1 for first segment.
+    segmentStart: segment start date in format 'yyyy-mm-dd'
     sequenceLength: how many glucose measurements to bin into one sequence
     maxGapHours: how long a single delT (time between glucose measurements) to accept in a sequence
 
@@ -45,9 +45,12 @@ def save_sequences(csvFilename, outFilename, b = 0.5, d = 3, segmentDays = 30, s
     timestamps = dfFull['CorrectTimestamp']
     dfFull['Time'] = [datetime.datetime.strptime(t, "%m/%d/%y %H:%M") for t in timestamps] # datetime object times
     df = dfFull.copy()
-
-    startDate = min(df['Time']) + datetime.timedelta(segmentDays * (segment - 1))
-    endDate   = min(df['Time']) + datetime.timedelta(segmentDays * segment)
+    
+    if not segmentStart:
+        startDate = min(df['Time'])
+    else:
+        startDate = datetime.datetime.strptime(segmentStart, "%Y-%m-%d")
+    endDate   = startDate + datetime.timedelta(segmentDays)
 
     df = df[df['Time'].between(startDate, endDate)]
 
@@ -146,7 +149,79 @@ def save_sequences(csvFilename, outFilename, b = 0.5, d = 3, segmentDays = 30, s
     
     sequences = pandas.DataFrame(sequences)
     sequences.to_csv(outFilename, index=False)
+  
+def get_protocols(protocolCSV, startDate, endDate=''):
+    '''Fetch insulin protocol values from spreadsheet for date or date range.
     
+    Usage: 
+    get_protocol(protocolCSV, date)
+    
+        protocolCSV: path to protocol CSV, see protocol.csv for example format
+        date: date on which we want to know the protocol, in format 'yyyy-mm-dd'
+        
+        returns dict with keys:
+        CarbRatioBreakfast	
+        CarbRatioLunch	
+        CarbRatioSnack	
+        CarbRatioDinner	
+        CarbRatioBedtime	
+        CorrFactDay	
+        CorrFactNight	
+        Lantus
+        
+        Each is a single value, giving the protocol on this date.
+    
+    get_protocol(protocolCSV, startDate, endDate)
+    
+        startDate: start of interval for which we want to know protocol ranges
+        endDate: end of interval for which we want to know protocol ranges
+        
+        returns dict with keys:
+        CarbRatioBreakfast	
+        CarbRatioLunch	
+        CarbRatioSnack	
+        CarbRatioDinner	
+        CarbRatioBedtime	
+        CorrFactDay	
+        CorrFactNight	
+        Lantus
+        
+        each is a tuple (minValue, maxValue) giving the protocol range within this date range.'''
+        
+    # Read in the protocol data
+    df = pandas.read_csv(protocolCSV)
+    
+    protocolStarts = df['DateStart']
+    protocolStartsFormatted = [datetime.datetime.strftime(datetime.datetime.strptime(pStart, '%m/%d/%y'), '%Y-%m-%d') for pStart in protocolStarts]
+
+    # Get indices of all protocols
+    returnSingleValue = not endDate
+    if returnSingleValue:
+        endDate = startDate
+    protocolInds = []
+    for iStart in range(len(protocolStartsFormatted)):
+        if protocolStartsFormatted[iStart] <= endDate and (iStart == len(protocolStartsFormatted) - 1 or protocolStartsFormatted[iStart + 1] > startDate):
+            protocolInds.append(iStart)
+    relevantProtocols = df.iloc[protocolInds, :]
+    return relevantProtocols
+
+#     labels = [  "CarbRatioBreakfast",
+#                 "CarbRatioLunch",
+#                 "CarbRatioSnack",
+#                 "CarbRatioDinner",
+#                 "CarbRatioBedtime",
+#                 "CorrFactDay",
+#                 "CorrFactNight",
+#                 "Lantus"]
+#     if returnSingleValue:
+#         assert(len(protocolInds) == 1)
+#         return {label: float(relevantProtocols[label].iloc[0]) for label in labels}
+#     else:
+#         assert(len(protocolInds) >= 1)
+#         return {label: (float(min(relevantProtocols[label])), 
+#                         float(max(relevantProtocols[label]))) for label in labels}
+            
+
 def scaleByTimeBin(amounts, actionCurve):
     nSeq = len(amounts)
     nBins = len(amounts[0]) 
