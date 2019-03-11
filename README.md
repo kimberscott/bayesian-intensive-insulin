@@ -42,31 +42,26 @@ clean your notebook upon committing changes.
 not be able to access `jq`. In this case, substitute the actual path to `jq` (e.g., `/usr/local/bin/jq`)
 in the `clean` command in your `.gitconfig` file.
 
-# TODO (can move to issues):
+# TODO:
 
-
-* Plot inferred against in-use parameters
-
-
+Setting up appropriate model assumptions:
 * Allow varying breakfast/lunch/dinner carb ratios and sensitivity factors
 * Look into using lognormal distribution for sigmaBG - does this matter for assessing certainty?
 * Use more realistic priors for basal, CR, CF
 * Use actual Humalog & carb action time profiles instead of linear
 * Allow action time to scale
 
-
+Accounting for known noise / deviations from model assumptions:
 * Treat sugar to treat differently (expect to act faster, and/or just discard glucose measurements in following N hours)
 * Treat exercise snacks differently (expect to have smaller influence, and/or discard glucose measurements in following N hours)
-
-
 * Expect appropriate noise on insulin & carbs, and infer "true" IOB/COB profiles
-* Infer basal profile rather than overall rate
-
-
-* Import pump basal data
 * Allow complete discounting of a timepoint with some small probability - the "hrmmmm" factor for typos, REALLY off measurements, etc.
 
+Basal profiles & pump data:
+* Infer basal profile (in N-hour blocks) rather than overall rate
+* Import pump basal data (incl. temp rates, basal IQ)
 
+Evaluation and sharing:
 * Evaluate model fit to data
 * Conduct comparisons to actual protocols
 * Code cleanup for readability
