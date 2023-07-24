@@ -2,3 +2,5 @@ venv/*
 .ipynb_checkpoints/*
 *.png
 processed/*
+.python-version
+*.egg-info/
