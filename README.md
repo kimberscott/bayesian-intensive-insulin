@@ -1,18 +1,47 @@
 # Setup instructions using pip
-* Clone the repo
-* Install virtualenv if needed
+1. Clone the repo
+2. Create and activate a virtual environment:
+   A. Using virtualenv:
+      * Install virtualenv if needed
 
-    `pip3 install virtualenv`
-* Create and activate a virtual environment for this project
+        `pip3 install virtualenv`
+      * Create and activate a virtual environment for this project
 
-    `bayesian_intensive_insulin$ virtualenv -p python3 venv`
-    `bayesian_intensive_insulin$ source venv/bin/activate`
-* Install requirements, including jupyter
+        `bayesian_intensive_insulin$ virtualenv -p python3 venv`
+        `bayesian_intensive_insulin$ source venv/bin/activate`
+        
+   B. Using pyenv-virtualenv:
+  
+      * Install readline, xz, pyenv, and pyenv-virtualenv. Instructions below for OSX; see 
+        [Pyenv docs](https://akrabat.com/creating-virtual-environments-with-pyenv/) for other OS.
+            
+        `brew install readline xz`
+        `brew install pyenv pyenv-virtualenv` 
+        
+      * Install Python 3.10.8 using pyenv:
+        
+        `pyenv install 3.10.8`
+    
+      * Create a virtual environment using this version: 
+    
+        `pyenv virtualenv 3.10.8 insulin`
+    
+      * Automatically activate this environment when entering this directory: 
+    
+        `bayesian-intensive-insulin$ echo 'insulin' > .python-version`
+  
+3. From within your virtual environment, install all requirements:
 
-    `bayesian_intensive_insulin$ pip3 install -r requirements.txt`
-* Run `jupyter notebook`. It should open your browser and let you select `pymongo_diabetes.ipynb`
-* As you work, install any additional packages you need from your virtual environment. If 
-  you do so, also run `pip3 freeze > requirements.txt` and commit the `requirements.txt` file.
+   `bayesian_intensive_insulin$ pip install -r requirements.txt`
+   `bayesian_intensive_insulin$ pip install -e .`
+    
+4. Add your environment as a kernel accessible to Jupyter:
+
+   `ipython kernel install --user --name insulin`
+
+4. Run `jupyter notebook`. It should open your browser and let you select `pymongo_diabetes.ipynb`
+5. As you work, install any additional packages you need in your virtual environment; if you do, also 
+   update the `requirements.txt` file.
 
 # Making changes more readable: stripping down the .ipynb metadata
 
